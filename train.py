@@ -6,13 +6,13 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pygame
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision.transforms as T
 from gymplatformer import make
 
+import pygame
 from entities.agent import Agent
 from entities.dqn import DQN
 from entities.replay_memory import ReplayMemory
@@ -22,11 +22,11 @@ PATH_OUT = "./mdl/policy_net_lvl4_bis.pth"
 DATA_FILE = "./dat/scores_lvl4_bis.csv"
 NETWORK = DQN
 
-env = make("PlatformerEnv", level=4, time_max=70)
+env = make("PlatformerEnv", ep_duration=10)
 
 clock = pygame.time.Clock()
 
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # INPUT EXTRACTION
 

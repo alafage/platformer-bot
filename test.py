@@ -1,11 +1,11 @@
 from itertools import count
 
 import cv2
-import pygame
 import torch
 import torchvision.transforms as T
 from gymplatformer import make
 
+import pygame
 from entities.agent import Agent
 from entities.dqn import DQN
 
@@ -15,11 +15,11 @@ AVI_FILE = "./rec/level0.avi"
 NETWORK = DQN
 NB_ITER = 4
 
-continuous_env = make("PlatformerEnv", level=4, time_max=70)
+continuous_env = make("PlatformerEnv", ep_duration=2)
 
 clock = pygame.time.Clock()
 
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 continuous_env.reset()
 
@@ -48,10 +48,8 @@ init_screen = agent.observe_env(continuous_env, resize, device)
 _, _, screen_height, screen_width = init_screen.shape
 
 # policy_net = DQN(screen_height, screen_width, n_actions).to(device)
-print(screen_height, screen_width, n_actions)
 policy_net = NETWORK(screen_height, screen_width, n_actions).to(device)
 policy_net.load_state_dict(torch.load(PATH))
-
 policy_net = policy_net.eval()
 
 # for param in policy_net.parameters():
@@ -119,7 +117,6 @@ else:
 
                 # Select and perform an action
                 action = agent.select_action(policy_net, state, float(0))
-
                 states, reward, done = continuous_env.step(action.item())
 
                 # displays environment
