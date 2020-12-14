@@ -1,21 +1,21 @@
 from itertools import count
 
 import cv2
+import gym
+import pygame
 import torch
 import torchvision.transforms as T
-from gymplatformer import make
 
-import pygame
 from entities.agent import Agent
-from entities.dqn import DQN
+from entities.networks import PlatformerNet
 
 PATH = "./models/policy_net.pth"
 RECORDING = False
 AVI_FILE = "./rec/level0.avi"
-NETWORK = DQN
-NB_ITER = 4
+NETWORK = PlatformerNet
+NB_ITER = 1
 
-continuous_env = make("PlatformerEnv", ep_duration=2)
+continuous_env = gym.make("gym_platformer:platformer-v0")
 
 clock = pygame.time.Clock()
 
@@ -62,14 +62,15 @@ if RECORDING:
         for i in range(NB_ITER):
 
             continuous_env.reset()
-            # print('Init: ',discrete_env.state)
+            # print('Init: ',continuous_env.state)
             continuous_env.render()
             state = agent.observe_env(continuous_env, resize, device)
 
             for t in count():
                 # Sets number of fps
                 clock.tick(20)
-
+                # get pressed keys
+                keys = pygame.key.get_pressed()
                 img_array.append(continuous_env.render(mode="rgb_array"))
 
                 # Select and perform an action
@@ -86,8 +87,11 @@ if RECORDING:
                 state = next_state
 
                 # break is episode completed
-                if done:
+                if done or keys[pygame.K_ESCAPE]:
                     break
+            # exits the program
+            if keys[pygame.K_ESCAPE]:
+                break
 
         out = cv2.VideoWriter(
             AVI_FILE,
@@ -107,14 +111,15 @@ else:
         for i in range(NB_ITER):
 
             continuous_env.reset()
-            # print('Init: ',discrete_env.state)
+            # print('Init: ',continuous_env.state)
             continuous_env.render()
             state = agent.observe_env(continuous_env, resize, device)
 
             for t in count():
                 # Sets number of fps
                 clock.tick(20)
-
+                # get pressed keys
+                keys = pygame.key.get_pressed()
                 # Select and perform an action
                 action = agent.select_action(policy_net, state, float(0))
                 states, reward, done = continuous_env.step(action.item())
@@ -124,9 +129,12 @@ else:
 
                 next_state = agent.observe_env(continuous_env, resize, device)
 
-                # Move to the next state
+                # moves to the next state
                 state = next_state
 
-                # break is episode completed
-                if done:
+                # breaks is episode completed
+                if done or keys[pygame.K_ESCAPE]:
                     break
+            # exits the program
+            if keys[pygame.K_ESCAPE]:
+                break

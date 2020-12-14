@@ -1,35 +1,24 @@
 import random
-from collections import namedtuple
 
-import torch
-
-Transition = namedtuple(
-    "Transition", ("state", "action", "next_state", "reward")
-)
+from transition import Transition
 
 
 class ReplayMemory(object):
+    """ Replay Memory object
+    """
+
     def __init__(self, capacity):
         self.capacity = capacity
         self.memory = []
         self.position = 0
 
-    def equal(self, transition_a, transition_b):
-        equalStates = torch.equal(transition_a.state, transition_b.state)
-        equalActions = torch.equal(transition_a.action, transition_b.action)
-        equalNewStates = torch.equal(
-            transition_a.next_state, transition_b.next_state
-        )
-        equalRewards = torch.equal(transition_a.reward, transition_b.reward)
-
-        return equalStates and equalActions and equalNewStates and equalRewards
-
-    def push(self, *args):
+    def push(self, new_transition: Transition):
         """Saves a transition."""
-        new_transition = Transition(*args)
+        # TODO: compresses state matrices
+        # FIXME: is that relevant
         for mem in self.memory:
             if mem:
-                if self.equal(new_transition, mem):
+                if new_transition == mem:
                     return (False, len(self.memory))
 
         if len(self.memory) < self.capacity:
